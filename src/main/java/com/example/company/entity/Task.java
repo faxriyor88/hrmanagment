@@ -4,12 +4,12 @@ import com.example.company.entity.Employee;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,6 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Data
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Task {
     @Id
     @GeneratedValue
@@ -30,6 +31,11 @@ public class Task {
     @OneToOne
     private TaskStatus taskStatus;
     private Timestamp deadline;
+    @CreatedBy
+    private UUID createdBy;
+    @LastModifiedBy
+    private UUID updatedBy;
+
 
     public Task(String name, String comment, List<Employee> employee, Employee vazifaberuvchi, TaskStatus taskStatus, Timestamp deadline) {
         this.name = name;

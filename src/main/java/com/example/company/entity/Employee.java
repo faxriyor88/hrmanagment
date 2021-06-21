@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,6 +20,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Data
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Employee implements UserDetails {
     @Id
     @GeneratedValue
@@ -32,6 +36,10 @@ public class Employee implements UserDetails {
     private String password;
     @CreationTimestamp
     private Timestamp createdAt;
+    @CreatedBy
+    private UUID createdBy;
+    @LastModifiedBy
+    private UUID updatedBy;
 
 
     private boolean accountNonExpired=true;
