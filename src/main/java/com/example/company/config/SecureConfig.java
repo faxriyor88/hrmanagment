@@ -43,10 +43,7 @@ public class SecureConfig extends WebSecurityConfigurerAdapter {
                 .csrf().disable()
                 .authorizeRequests()
                 .antMatchers("/api/registr",
-                        "/api/auth/verifyemail",
-                        "/api/loginemployee",
-                        "/api/auth/taskattach",
-                        "/api/auth/taskattachconfirm").permitAll()
+                        "/api/auth/verifyemail").permitAll()
                 .anyRequest().authenticated();
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -62,7 +59,7 @@ public class SecureConfig extends WebSecurityConfigurerAdapter {
         javaMailSenderImplements.setHost("smtp.gmail.com");
         javaMailSenderImplements.setPort(587);
         javaMailSenderImplements.setUsername("umarxonovfaxriyor@gmail.com");
-        javaMailSenderImplements.setPassword("200183838833");//"fax_0803");//
+        javaMailSenderImplements.setPassword("****");
         Properties properties=javaMailSenderImplements.getJavaMailProperties();
         properties.put("smtp.transport.protocol","smtp");
         properties.put("mail.smtp.auth",true);
