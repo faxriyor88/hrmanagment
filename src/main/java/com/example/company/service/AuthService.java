@@ -40,7 +40,9 @@ public class AuthService implements UserDetailsService {
 
     // Employeeni ro'yxatdan o'tkazish
     public ApiResponse registr(RegistrDto registrDto) {
-        Optional<Employee> byEmail = employeeRepository.findByEmail(registrDto.getEmail());
+        Employee employee1 = (Employee) SecurityContextHolder.getContext().getAuthentication();
+        if (employee1.getRole().equals(Rolename.ROLE_DIRECTOR)||employee1.getRole().equals(Rolename.ROLE_HR_MANAGER)){
+            Optional<Employee> byEmail = employeeRepository.findByEmail(registrDto.getEmail());
         if (!byEmail.isPresent()) {
             Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
             if (byId.isPresent()) {
@@ -60,6 +62,9 @@ public class AuthService implements UserDetailsService {
             }
         } else {
             return new ApiResponse("Bunday email mavjud", false);
+        }
+    }else {
+            return new ApiResponse("Sizda bu operatsiyani bajarishga huquq yo'q",false);
         }
     }
 
