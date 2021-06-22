@@ -40,8 +40,7 @@ public class AuthService implements UserDetailsService {
 
     // Employeeni ro'yxatdan o'tkazish
     public ApiResponse registr(RegistrDto registrDto) {
-        Employee employee1 = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (employee1.getRole().contains(Rolename.ROLE_DIRECTOR)||employee1.getRole().contains(Rolename.ROLE_HR_MANAGER)){
+        if (getRole()){
             Optional<Employee> byEmail = employeeRepository.findByEmail(registrDto.getEmail());
         if (!byEmail.isPresent()) {
             Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
@@ -134,8 +133,7 @@ public class AuthService implements UserDetailsService {
 
     // Xodimlar ro'yxatini olish
     public List<Employee> getEmployee() {
-        Employee employee = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (employee.getRole().contains("ROLE_DIRECTOR") || employee.getRole().contains("ROLE_HR_MANAGER")) {
+        if (getRole()){
             return employeeRepository.findByRole(roleRepository.findByRolename(Rolename.ROLE_STAFF));
         } else {
             return new ArrayList<>();
@@ -160,5 +158,15 @@ public class AuthService implements UserDetailsService {
     public SalaryHistory getSalaryByEmployee(String username){
         Optional<SalaryHistory> optional=salaryHistoryRepository.findByEmployee_Email(username);
         return optional.orElseThrow(() -> new UsernameNotFoundException("Bunday xodim topilmadi"));
+    }
+
+    public boolean getRole(){
+        Employee employee = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Set<Role> role = employee.getRole();
+        if (role.contains(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR))||role.contains(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER))){
+            return true;
+        }else {
+            return false;
+        }
     }
 }
