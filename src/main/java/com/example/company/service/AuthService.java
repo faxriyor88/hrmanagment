@@ -48,8 +48,13 @@ public class AuthService implements UserDetailsService {
                 if (byId.isPresent()) {
                     String roleChoice = byId.get().getAuthority();
                     String employeesRoleInSystem = getRoleAuth().getRole().getAuthority();
-                    if (!(roleChoice.equals(Rolename.ROLE_DIRECTOR.name())&&employeesRoleInSystem.equals(Rolename.ROLE_HR_MANAGER.name()))&&
-                            !(roleChoice.equals(Rolename.ROLE_HR_MANAGER.name())&&(employeesRoleInSystem.equals(Rolename.ROLE_HR_MANAGER.name())))) {
+                    String director=Rolename.ROLE_DIRECTOR.name();
+                    String hrmanager=Rolename.ROLE_HR_MANAGER.name();
+                    String staff=Rolename.ROLE_STAFF.name();
+                    if((roleChoice.equals(hrmanager)&&employeesRoleInSystem.equals(director))||
+                        (roleChoice.equals(director)&&employeesRoleInSystem.equals(director))||
+                           (roleChoice.equals(staff)&&employeesRoleInSystem.equals(director))||
+                            (roleChoice.equals(staff)&&employeesRoleInSystem.equals(hrmanager))){
                         String emailCode = UUID.randomUUID().toString();
                         Employee employee = new Employee(registrDto.getFirtsname(), registrDto.getLastname(),
                                 Collections.singleton(byId.get()), registrDto.getSalary(),
