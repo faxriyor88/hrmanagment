@@ -46,7 +46,10 @@ public class AuthService implements UserDetailsService {
             if (!byEmail.isPresent()) {
                 Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
                 if (byId.isPresent()) {
-                    if (!(byId.get().getAuthority().equals(Rolename.ROLE_DIRECTOR) && getRoleAuth().getRole().getAuthority().equals(Rolename.ROLE_HR_MANAGER))) {
+                    String roleChoice = byId.get().getAuthority();
+                    String employeesRoleInSystem = getRoleAuth().getRole().getAuthority();
+                    if (!(roleChoice.equals(Rolename.ROLE_DIRECTOR.name())&&employeesRoleInSystem.equals(Rolename.ROLE_HR_MANAGER.name()))&&
+                            !(roleChoice.equals(Rolename.ROLE_HR_MANAGER.name())&&(employeesRoleInSystem.equals(Rolename.ROLE_HR_MANAGER.name())))) {
                         String emailCode = UUID.randomUUID().toString();
                         Employee employee = new Employee(registrDto.getFirtsname(), registrDto.getLastname(),
                                 Collections.singleton(byId.get()), registrDto.getSalary(),
@@ -168,11 +171,13 @@ public class AuthService implements UserDetailsService {
     public RoleResponse getRoleAuth(){
         Employee employee = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Role> role = employee.getRole();
-        if (role.contains(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR))){
-            return new RoleResponse(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR),true);
+        Role roleDirector = roleRepository.findByRolename(Rolename.ROLE_DIRECTOR);
+        Role roleHrManager = roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER);
+        if (role.contains(roleDirector)){
+            return new RoleResponse(roleDirector,true);
         }else {
-            if (role.contains(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER))){
-                return new RoleResponse(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER),true);
+            if (role.contains(roleHrManager)){
+                return new RoleResponse(roleHrManager,true);
             }else {
                 return new RoleResponse(null,false);
             }
