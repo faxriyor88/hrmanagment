@@ -9,6 +9,7 @@ import com.example.company.entity.*;
 import com.example.company.entity.enums.Rolename;
 import com.example.company.repository.*;
 import com.example.company.response.ApiResponse;
+import com.example.company.response.RoleResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -40,30 +41,34 @@ public class AuthService implements UserDetailsService {
 
     // Employeeni ro'yxatdan o'tkazish
     public ApiResponse registr(RegistrDto registrDto) {
-        if (getRole()){
+        if (getRoleAuth().isStatus()) {
             Optional<Employee> byEmail = employeeRepository.findByEmail(registrDto.getEmail());
-        if (!byEmail.isPresent()) {
-            Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
-            if (byId.isPresent()) {
-                String emailCode = UUID.randomUUID().toString();
-                Employee employee = new Employee(registrDto.getFirtsname(), registrDto.getLastname(),
-                        Collections.singleton(byId.get()), registrDto.getSalary(),
-                        emailCode, registrDto.getEmail(), passwordEncoder.encode(registrDto.getPassword()));
-                employeeRepository.save(employee);
-                boolean b = sendEmail(registrDto.getEmail(), emailCode);
-                if (b) {
-                    return new ApiResponse("Emailga kod jo'natildi", true);
+            if (!byEmail.isPresent()) {
+                Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
+                if (byId.isPresent()) {
+                    if (!(byId.get().getAuthority().equals(Rolename.ROLE_DIRECTOR) && getRoleAuth().getRole().getAuthority().equals(Rolename.ROLE_HR_MANAGER))) {
+                        String emailCode = UUID.randomUUID().toString();
+                        Employee employee = new Employee(registrDto.getFirtsname(), registrDto.getLastname(),
+                                Collections.singleton(byId.get()), registrDto.getSalary(),
+                                emailCode, registrDto.getEmail(), passwordEncoder.encode(registrDto.getPassword()));
+                        employeeRepository.save(employee);
+                        boolean b = sendEmail(registrDto.getEmail(), emailCode);
+                        if (b) {
+                            return new ApiResponse("Emailga kod jo'natildi", true);
+                        } else {
+                            return new ApiResponse("Kod jo'natilmadi", false);
+                        }
+                    } else {
+                        return new ApiResponse("Sizda bu operatsiyani bajarishga huquq yo'q", false);
+                    }
                 } else {
-                    return new ApiResponse("Kod jo'natilmadi", false);
+                    return new ApiResponse("Bunday rol topilmadi", false);
                 }
             } else {
-                return new ApiResponse("Bunday rol topilmadi", false);
+                return new ApiResponse("Bunday email mavjud", false);
             }
         } else {
-            return new ApiResponse("Bunday email mavjud", false);
-        }
-    }else {
-            return new ApiResponse("Sizda bu operatsiyani bajarishga huquq yo'q",false);
+            return new ApiResponse("Sizda bu operatsiyani bajarishga huquq yo'q", false);
         }
     }
 
@@ -133,7 +138,7 @@ public class AuthService implements UserDetailsService {
 
     // Xodimlar ro'yxatini olish
     public List<Employee> getEmployee() {
-        if (getRole()){
+        if (getRoleAuth().isStatus()){
             return employeeRepository.findByRole(roleRepository.findByRolename(Rolename.ROLE_STAFF));
         } else {
             return new ArrayList<>();
@@ -160,13 +165,17 @@ public class AuthService implements UserDetailsService {
         return optional.orElseThrow(() -> new UsernameNotFoundException("Bunday xodim topilmadi"));
     }
 
-    public boolean getRole(){
+    public RoleResponse getRoleAuth(){
         Employee employee = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Set<Role> role = employee.getRole();
-        if (role.contains(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR))||role.contains(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER))){
-            return true;
+        if (role.contains(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR))){
+            return new RoleResponse(roleRepository.findByRolename(Rolename.ROLE_DIRECTOR),true);
         }else {
-            return false;
+            if (role.contains(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER))){
+                return new RoleResponse(roleRepository.findByRolename(Rolename.ROLE_HR_MANAGER),true);
+            }else {
+                return new RoleResponse(null,false);
+            }
         }
     }
 }
