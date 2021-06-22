@@ -40,8 +40,8 @@ public class AuthService implements UserDetailsService {
 
     // Employeeni ro'yxatdan o'tkazish
     public ApiResponse registr(RegistrDto registrDto) {
-        Employee employee1 = (Employee) SecurityContextHolder.getContext().getAuthentication();
-        if (employee1.getRole().equals(Rolename.ROLE_DIRECTOR)||employee1.getRole().equals(Rolename.ROLE_HR_MANAGER)){
+        Employee employee1 = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (employee1.getRole().contains(Rolename.ROLE_DIRECTOR)||employee1.getRole().contains(Rolename.ROLE_HR_MANAGER)){
             Optional<Employee> byEmail = employeeRepository.findByEmail(registrDto.getEmail());
         if (!byEmail.isPresent()) {
             Optional<Role> byId = roleRepository.getRole(registrDto.getRole_id());
@@ -135,7 +135,7 @@ public class AuthService implements UserDetailsService {
     // Xodimlar ro'yxatini olish
     public List<Employee> getEmployee() {
         Employee employee = (Employee) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (employee.getRole().equals("ROLE_DIRECTOR") || employee.getRole().equals("ROLE_HR_MANAGER")) {
+        if (employee.getRole().contains("ROLE_DIRECTOR") || employee.getRole().contains("ROLE_HR_MANAGER")) {
             return employeeRepository.findByRole(roleRepository.findByRolename(Rolename.ROLE_STAFF));
         } else {
             return new ArrayList<>();
