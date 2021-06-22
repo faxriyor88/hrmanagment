@@ -11,6 +11,7 @@ import com.example.company.repository.*;
 import com.example.company.response.ApiResponse;
 import com.example.company.response.RoleResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -154,23 +155,31 @@ public class AuthService implements UserDetailsService {
     }
 
     //Xodimlarni kelib ketishi va bajargan vazifalari
-    public InformationDto employeeInformation(EmployeeInformationDto informationDto) {
-        Optional<Turniket> optional = turniketRepository.findByTimeAfterAndTimeBeforeAndEmployee_Email(informationDto.getTime(), informationDto.getTime2(), informationDto.getUsername());
-        if (optional.isPresent()) {
-            Optional<Task> optional1 = taskRepository.findByEmployeeContainingAndDeadlineAfterAndDeadlineBefore(employeeRepository.findByEmail(informationDto.getUsername()).get(), informationDto.getTime(), informationDto.getTime2());
-            if (optional1.isPresent()) {
-                return new InformationDto(optional1.get(), optional.get());
+    public ResponseEntity<?> employeeInformation(EmployeeInformationDto informationDto) {
+        if (getRoleAuth().isStatus()) {
+            Optional<Turniket> optional = turniketRepository.findByTimeAfterAndTimeBeforeAndEmployee_Email(informationDto.getTime(), informationDto.getTime2(), informationDto.getUsername());
+            if (optional.isPresent()) {
+                Optional<Task> optional1 = taskRepository.findByEmployeeContainingAndDeadlineAfterAndDeadlineBefore(employeeRepository.findByEmail(informationDto.getUsername()).get(), informationDto.getTime(), informationDto.getTime2());
+                if (optional1.isPresent()) {
+                    return ResponseEntity.ok(new InformationDto(optional1.get(), optional.get()));
+                } else {
+                    return ResponseEntity.ok(new InformationDto());
+                }
             } else {
-                return new InformationDto();
+                return ResponseEntity.ok(new InformationDto());
             }
         } else {
-            return new InformationDto();
+            return ResponseEntity.status(403).body("Sizda bu huquq yo'q");
         }
     }
     // Xodim bo'yicha oyliklarni ko'rish
-    public SalaryHistory getSalaryByEmployee(String username){
-        Optional<SalaryHistory> optional=salaryHistoryRepository.findByEmployee_Email(username);
-        return optional.orElseThrow(() -> new UsernameNotFoundException("Bunday xodim topilmadi"));
+    public ResponseEntity<?> getSalaryByEmployee(String username){
+        if (getRoleAuth().isStatus()) {
+            Optional<SalaryHistory> optional = salaryHistoryRepository.findByEmployee_Email(username);
+            return ResponseEntity.ok(optional.orElseThrow(() -> new UsernameNotFoundException("Bunday xodim topilmadi")));
+        }else {
+            return ResponseEntity.status(403).body("Sizda bu huquq yo'q");
+        }
     }
 
     public RoleResponse getRoleAuth(){

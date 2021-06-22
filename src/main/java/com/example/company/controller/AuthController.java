@@ -56,8 +56,7 @@ public class AuthController {
 
     @GetMapping("/salarybyemployee")
     public ResponseEntity<?> salary(@RequestParam  String username){
-        SalaryHistory salaryByEmployee = authService.getSalaryByEmployee(username);
-        return ResponseEntity.ok(salaryByEmployee);
+        return ResponseEntity.ok(authService.getSalaryByEmployee(username));
     }
 
 }
